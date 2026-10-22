@@ -1,7 +1,9 @@
-from fastapi import FastAPI 
+from fastapi import FastAPI, UploadFile, File
+import pandas as pd  
 
 app = FastAPI()
 
-@app.get("/")
-def home():
-    return {"message": "hello"}
+@app.post("/upload")
+def upload(file: UploadFile = File(...)):
+    df = pd.read_csv(file.file, index_col=False)
+    return {"rows": len(df), "columns": list(df.columns)}
