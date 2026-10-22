@@ -30,7 +30,7 @@ def load_chase(file):
     df["amount"] = df["amount"] * -1
     return df[["date", "description", "amount", "bank_category"]]
 
-st.title("Expense Tracker")
+st.title("Credit Card Expense Tracker")
 uploaded = st.file_uploader("Upload your Chase CSV", type="csv")
 
 if uploaded is not None:
