@@ -1,10 +1,6 @@
 import pandas as pd 
+import streamlit as st
 
-df = pd.read_csv("credit.csv")
-df = df[df["Type"] == "Sale"]
-
-print(df["Type"].value_counts())
-print(df["Description"].head(30))
 
 categories = {
     "Dining": ["starbucks", "TST*"],
@@ -22,13 +18,35 @@ def categorize(description):
                 return group
     return "Other"        
 
-df["Category2"] = df["Description"].apply(categorize)
-var = df["Category2"] == "Other"
-df.loc[var, "Category2"] = df.loc[var, "Category"]
-df["Category2"] = df["Category2"].fillna("Other")
+def load_chase(file):
+    df = pd.read_csv(file, index_col = False)
+    df = df[df["Type"] == "Sale"].copy()
+    df = df.rename(columns = {
+        "Transaction Date" : "date",
+        "Description": "description",
+        "Amount" : "amount",
+        "Category" : "bank_category",
+    })
+    df["amount"] = df["amount"] * -1
+    return df[["date", "description", "amount", "bank_category"]]
 
-print(df["Category2"].value_counts())
-print(df[df["Category2"] == "Other"]["Description"].head(30))
+st.title("Expense Tracker")
+uploaded = st.file_uploader("Upload your Chase CSV", type="csv")
 
-# df["Amount"].sum()
-# df["new_col"] = df["Description"].apply()
+if uploaded is not None:
+    df = load_chase(uploaded)
+    df["category"] = df["description"].apply(categorize)
+    
+    #chase fallback:
+    var = df["category"] == "Other"
+    df.loc[var, "category"] = df.loc[var, "bank_category"]
+    df["category"] = df["category"].fillna("Other")
+    
+    st.metric("Total spent", f"${df['amount'].sum():,.2f}")
+    
+    totals = df.groupby("category")["amount"].sum().sort_values(ascending=False)
+    st.bar_chart(totals)
+    
+    st.dataframe(df.sort_values("category"))
+
+
