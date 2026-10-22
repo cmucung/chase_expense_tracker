@@ -1,0 +1,5 @@
+expenses.db
+venv/
+__pycache__/
+*.csv
+.DS_Store
